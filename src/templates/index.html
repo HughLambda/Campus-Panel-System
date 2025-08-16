@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask WebSocket Chat</title>
+    <!-- 引入Socket.IO客户端库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .chat-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        #chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+        
+        .message {
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+        
+        .system-message {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+        
+        #message-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        #send-button {
+            padding: 10px 20px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #send-button:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Flask WebSocket Chat</h1>
+        <div id="chat-messages"></div>
+        <form id="message-form">
+            <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+            <button type="submit" id="send-button">Send</button>
+        </form>
+    </div>
+
+    <script>
+        // 连接到WebSocket服务器
+        const socket = io.connect('http://' + document.domain + ':' + location.port);
+        
+        // 获取DOM元素
+        const chatMessages = document.getElementById('chat-messages');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        
+        // 处理从服务器接收的消息
+        socket.on('response', function(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+            
+            // 区分系统消息和用户消息
+            if (message.startsWith('A new user has joined') || message.startsWith('A user has left')) {
+                messageElement.classList.add('system-message');
+            }
+            
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            
+            // 自动滚动到底部
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        
+        // 处理表单提交（发送消息）
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止表单默认提交行为
+            
+            const message = messageInput.value.trim();
+            if (message) {
+                // 发送消息到服务器
+                socket.emit('message', message);
+                // 清空输入框
+                messageInput.value = '';
+            }
+        });
+        
+        // 允许按Enter键发送消息
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                messageForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

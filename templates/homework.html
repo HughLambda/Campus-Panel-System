@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作业管理系统</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6cf7;
+            --secondary-color: #6b7280;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --light-color: #f3f4f6;
+            --dark-color: #1f2937;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 0.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f9fafb;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3b5bdb;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .date-picker {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .date-picker input {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            color: var(--secondary-color);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .success {
+            color: var(--success-color);
+        }
+
+        .warning {
+            color: var(--warning-color);
+        }
+
+        .danger {
+            color: var(--danger-color);
+        }
+
+        .lists-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .list-card {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .list-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .homework-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .homework-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .homework-subject {
+            font-weight: 600;
+        }
+
+        .homework-content {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .homework-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--secondary-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 1rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录模态框 -->
+    <div id="loginModal" class="modal" style="display: flex;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>登录</h2>
+                <button class="modal-close" onclick="document.getElementById('loginModal').style.display = 'none'">×</button>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" class="form-control" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">登录</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <header>
+        <div class="container header-content">
+            <div class="logo">作业管理系统</div>
+            <div class="user-info">
+                <span id="userRole">管理员</span>
+                <button id="logoutBtn" class="btn btn-danger">退出</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="date-picker">
+            <input type="date" id="datePicker">
+            <button id="todayBtn" class="btn btn-primary">今天</button>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">未提交作业统计</div>
+                <div class="card-body" id="unsubmittedStats">
+                    <!-- 统计数据将通过JavaScript动态填充 -->
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">已提交作业统计</div>
+                <div class="card-body" id="submittedStats">
+                    <!-- 统计数据将通过JavaScript动态填充 -->
+                </div>
+            </div>
+        </div>
+
+        <div class="lists-container">
+            <!-- 未提交作业列表将通过JavaScript动态创建 -->
+        </div>
+    </div>
+
+    <!-- 添加作业模态框 -->
+    <div id="addHomeworkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>添加作业</h2>
+                <button class="modal-close" onclick="document.getElementById('addHomeworkModal').style.display = 'none'">×</button>
+            </div>
+            <form id="addHomeworkForm">
+                <div class="form-group">
+                    <label for="homeworkSubject">科目</label>
+                    <select id="homeworkSubject" class="form-control" required>
+                        <option value="语文">语文</option>
+                        <option value="数学">数学</option>
+                        <option value="英语">英语</option>
+                        <option value="物理">物理</option>
+                        <option value="化学">化学</option>
+                        <option value="生物">生物</option>
+                        <option value="历史">历史</option>
+                        <option value="地理">地理</option>
+                        <option value="政治">政治</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="homeworkContent">作业内容</label>
+                    <textarea id="homeworkContent" class="form-control" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="homeworkDeadline">截止日期</label>
+                    <input type="datetime-local" id="homeworkDeadline" class="form-control" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('addHomeworkModal').style.display = 'none'">取消</button>
+                    <button type="submit" class="btn btn-primary">添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 学生列表
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        const STUDENTS = ['张三', '李四', '王五', '赵钱', '孙李', '周吴', '郑王', '冯陈', '褚卫', '蒋沈', '韩杨', '朱秦', '尤许', '何吕', '施张', '孔曹', '严华', '金魏'];
+
+
+
+
+
+
+
+
+
+
+        
+        // 拼音映射表
+        const pinyinMap = {
+            '语文': 'yuwen',
+            '数学': 'shuxue',
+            '英语': 'yingyu',
+            '物理': 'wuli',
+            '化学': 'huaxue',
+            '生物': 'shengwu',
+            '历史': 'lishi',
+            '地理': 'dili',
+            '政治': 'zhengzhi'
+        };
+
+        // 当前登录用户信息
+        let currentUser = null;
+        let currentDate = new Date();
+
+        // 设置日期选择器默认值为今天
+        function setTodayDate() {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            document.getElementById('datePicker').value = dateStr;
+        }
+
+        // 初始化Socket.IO连接
+        const socket = io();
+
+        // 登录表单提交事件
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            socket.emit('message', {
+                tag: 'homework',
+                action: 'login',
+                username: username,
+                password: password
+            });
+        });
+
+        // 监听登录结果
+        socket.on('response', function(data) {
+            if (data.tag !== 'homework') return;
+
+            if (data.result.action === 'login') {
+                if (data.result.status === 'success') {
+                    currentUser = {
+                        username: data.result.username,
+                        role: data.result.role
+                    };
+                    document.getElementById('userRole').textContent = data.result.role === 'admin' ? '管理员' : data.result.role === 'rep' ? '课代表' : '家长';
+                    document.getElementById('loginModal').style.display = 'none';
+                    loadHomeworkData();
+                } else {
+                    alert('登录失败: ' + data.result.message);
+                }
+            } else if (data.result.action === 'get_records') {
+                if (data.result.status === 'success') {
+                    renderHomeworkLists(data.result.data);
+                    renderStats(data.result.data);
+                } else {
+                    alert('获取数据失败: ' + data.result.message);
+                }
+            } else if (data.result.action === 'add') {
+                if (data.result.status === 'success') {
+                    loadHomeworkData();
+                } else {
+                    alert('添加失败: ' + data.result.message);
+                }
+            } else if (data.result.action === 'delete') {
+                if (data.result.status === 'success') {
+                    loadHomeworkData();
+                } else {
+                    alert('删除失败: ' + data.result.message);
+                }
+            }
+        });
+
+        // 退出按钮点击事件
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            socket.emit('logout');
+            currentUser = null;
+            document.getElementById('loginModal').style.display = 'flex';
+            document.querySelector('.lists-container').innerHTML = '';
+            document.getElementById('unsubmittedStats').innerHTML = '';
+            document.getElementById('submittedStats').innerHTML = '';
+        });
+
+        // 日期选择器变化事件
+        document.getElementById('datePicker').addEventListener('change', function() {
+            currentDate = new Date(this.value);
+            loadHomeworkData();
+        });
+
+        // 今天按钮点击事件
+        document.getElementById('todayBtn').addEventListener('click', function() {
+            currentDate = new Date();
+            setTodayDate();
+            loadHomeworkData();
+        });
+
+        // 加载作业数据
+        function loadHomeworkData() {
+            if (!currentUser) return;
+
+            const dateStr = currentDate.toISOString().split('T')[0];
+            socket.emit('message', {
+                tag: 'homework',
+                action: 'get_records',
+                date: dateStr,
+                username: currentUser.username
+            });
+        }
+
+        // 监听作业记录数据
+        socket.on('homework_records', function(data) {
+            renderHomeworkLists(data);
+            renderStats(data);
+        });
+
+        // 渲染作业列表
+        function renderHomeworkLists(data) {
+            const container = document.querySelector('.lists-container');
+            container.innerHTML = '';
+
+            // 获取所有科目
+            const subjects = Object.keys(data);
+
+            subjects.forEach(subject => {
+                // 创建未提交列表
+                const unsubmittedList = document.createElement('div');
+                unsubmittedList.className = 'list-card';
+                unsubmittedList.innerHTML = `
+                    <div class="list-header">
+                        <span>${subject} - 未提交</span>
+                        ${currentUser.role === 'admin' || currentUser.role === 'rep' ? 
+                            '<button class="btn btn-primary btn-sm" onclick="showAddHomeworkModal(\'' + subject + '\')">添加</button>' : ''
+                        }
+                    </div>
+                    <div class="list-body unsubmitted-list" data-subject="${subject}">
+                        <!-- 作业项将动态添加 -->
+                    </div>
+                `;
+                container.appendChild(unsubmittedList);
+
+                // 创建已提交列表
+                const submittedList = document.createElement('div');
+                submittedList.className = 'list-card';
+                submittedList.innerHTML = `
+                    <div class="list-header" style="background-color: var(--success-color);">
+                        <span>${subject} - 已提交</span>
+                    </div>
+                    <div class="list-body submitted-list" data-subject="${subject}">
+                        <!-- 作业项将动态添加 -->
+                    </div>
+                `;
+                container.appendChild(submittedList);
+            });
+
+            // 填充未提交作业项（所有未在记录中的学生）
+            subjects.forEach(subject => {
+                const submittedStudents = data[subject] || [];
+                const unsubmittedStudents = STUDENTS.filter(student => !submittedStudents.includes(student));
+
+                // 填充未提交列表
+                const unsubmittedList = document.querySelector(`.unsubmitted-list[data-subject="${subject}"]`);
+                unsubmittedStudents.forEach(student => {
+                    if (unsubmittedList) {
+                        const homeworkItem = document.createElement('div');
+                        homeworkItem.className = 'homework-item';
+                        homeworkItem.innerHTML = `
+                            <div class="homework-info">
+                                <div class="homework-subject">${student}</div>
+                                <div class="homework-content">未提交</div>
+                            </div>
+                            <div class="homework-actions">
+                                ${currentUser.role === 'admin' || currentUser.role === 'rep' ? 
+                                    '<button class="btn btn-primary" onclick="markAsSubmitted(\'' + subject + '\', \'' + student + '\')">标记提交</button>' : ''
+                                }
+                            </div>
+                        `;
+                        unsubmittedList.appendChild(homeworkItem);
+                    }
+                });
+
+                // 填充已提交列表
+                const submittedList = document.querySelector(`.submitted-list[data-subject="${subject}"]`);
+                submittedStudents.forEach(student => {
+                    if (submittedList) {
+                        const homeworkItem = document.createElement('div');
+                        homeworkItem.className = 'homework-item';
+                        homeworkItem.innerHTML = `
+                            <div class="homework-info">
+                                <div class="homework-subject">${student}</div>
+                                <div class="homework-content">已提交</div>
+                            </div>
+                            <div class="homework-actions">
+                                ${currentUser.role === 'admin' ? 
+                                    '<button class="btn btn-danger" onclick="markAsUnsubmitted(\'' + subject + '\', \'' + student + '\')">取消提交</button>' : ''
+                                }
+                            </div>
+                        `;
+                        submittedList.appendChild(homeworkItem);
+                    }
+                });
+            });
+        }
+
+        // 渲染统计数据
+        function renderStats(data) {
+            const unsubmittedStats = document.getElementById('unsubmittedStats');
+            const submittedStats = document.getElementById('submittedStats');
+            unsubmittedStats.innerHTML = '';
+            submittedStats.innerHTML = '';
+
+            // 按科目统计
+            const stats = {};
+            const subjects = Object.keys(data);
+
+            subjects.forEach(subject => {
+                const submitted = data[subject] ? data[subject].length : 0;
+                const unsubmitted = STUDENTS.length - submitted;
+                stats[subject] = { submitted, unsubmitted };
+            });
+
+            // 生成未提交统计
+            subjects.forEach(subject => {
+                const stat = document.createElement('div');
+                stat.className = 'stat';
+                stat.innerHTML = `
+                    <span class="stat-label">${subject}</span>
+                    <span class="stat-value danger">${stats[subject].unsubmitted}</span>
+                `;
+                unsubmittedStats.appendChild(stat);
+            });
+
+            // 生成已提交统计
+            subjects.forEach(subject => {
+                const stat = document.createElement('div');
+                stat.className = 'stat';
+                stat.innerHTML = `
+                    <span class="stat-label">${subject}</span>
+                    <span class="stat-value success">${stats[subject].submitted}</span>
+                `;
+                submittedStats.appendChild(stat);
+            });
+        }
+
+        // 标记作业为已提交
+        function markAsSubmitted(subject, studentName) {
+            if (!currentUser) return;
+
+            const dateStr = currentDate.toISOString().split('T')[0];
+            socket.emit('message', {
+                tag: 'homework',
+                action: 'add',
+                date: dateStr,
+                subject: subject,
+                student_name: studentName,
+                username: currentUser.username
+            });
+        }
+
+        // 标记作业为未提交
+        function markAsUnsubmitted(subject, studentName) {
+            if (!currentUser) return;
+
+            const dateStr = currentDate.toISOString().split('T')[0];
+            socket.emit('message', {
+                tag: 'homework',
+                action: 'delete',
+                date: dateStr,
+                subject: subject,
+                student_name: studentName
+            });
+        }
+
+        // 显示添加作业模态框
+        function showAddHomeworkModal(subject) {
+            if (!currentUser) return;
+
+            document.getElementById('homeworkSubject').value = subject;
+            document.getElementById('addHomeworkModal').style.display = 'flex';
+        }
+
+        // 查看作业详情
+        function viewHomework(id) {
+            socket.emit('get_homework_detail', { id });
+        }
+
+        // 提交作业
+        function submitHomework(id) {
+            socket.emit('submit_homework', { id });
+        }
+
+        // 添加作业表单提交
+        document.getElementById('addHomeworkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const subject = document.getElementById('homeworkSubject').value;
+            const content = document.getElementById('homeworkContent').value;
+            const deadline = document.getElementById('homeworkDeadline').value;
+
+            socket.emit('add_homework', { subject, content, deadline });
+            document.getElementById('addHomeworkModal').style.display = 'none';
+        });
+
+        // 监听作业添加结果
+        socket.on('homework_added', function() {
+            loadHomeworkData();
+        });
+
+        // 监听作业提交结果
+        socket.on('homework_submitted', function() {
+            loadHomeworkData();
+        });
+
+        // 初始化
+        setTodayDate();
+    </script>
+</body>
+</html>

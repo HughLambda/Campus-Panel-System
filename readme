@@ -1,0 +1,119 @@
+# Campus Panel System
+
+A modular Flask-based web application system for managing homework, chat, and other utilities, supporting real-time communication via WebSocket (Socket.IO). The project is organized for extensibility, allowing easy addition of new web apps.
+
+## Features
+
+- **Homework Management**: Track homework submissions, statistics, and manage users (admin, rep, parent).
+- **WebSocket Chat**: Real-time chat using Flask-SocketIO.
+- **Modular App System**: Easily mount new apps (see `src/utils/example.py` for calculator and text processor demos).
+- **Frontend Templates**: Responsive HTML templates for homework and chat.
+
+## Project Structure
+
+```
+campuspanel.db
+homework.html
+test_homework_app.py
+src/
+    main.py
+    templates/
+        index.html
+    utils/
+        app.py
+        example.py
+        page.py
+        task.py
+        __pycache__/
+templates/
+    homework.html
+```
+
+- `src/main.py`: Main entry for running the modular app system.
+- `src/utils/app.py`: Core classes for mounting and managing web apps.
+- `src/utils/page.py`: HTML page rendering logic.
+- `src/utils/task.py`: Base class for backend logic.
+- `src/utils/example.py`: Example apps (calculator, text processor).
+- `src/templates/index.html`: Chat frontend.
+- `templates/homework.html`, `homework.html`: Homework management frontends.
+- `test_homework_app.py`: Test runner for homework app.
+- `campuspanel.db`: Database file.
+
+## Getting Started
+
+### 1. Install dependencies
+
+```sh
+pip install flask flask-socketio
+```
+
+### 2. Run the main app
+
+```sh
+python src/main.py
+```
+
+Visit [http://localhost:15529](http://localhost:15529) to see the app collection.
+
+### 3. Run example apps
+
+```sh
+python src/utils/example.py
+```
+
+### 4. Run homework app test server
+
+```sh
+python test_homework_app.py
+```
+
+## Adding New Apps
+
+- Extend `Task` in [`src/utils/task.py`](src/utils/task.py).
+- Create a `Page` in [`src/utils/page.py`](src/utils/page.py).
+- Mount with `SimpApp` and `WebAppCollection` in [`src/utils/app.py`](src/utils/app.py).
+
+## License
+
+MIT
+
+---
+
+## How to Create a Git Repository and Push to GitHub
+
+1. **Initialize git in your project folder:**
+
+   ```sh
+   git init
+   ```
+
+2. **Add all files:**
+
+   ```sh
+   git add .
+   ```
+
+3. **Commit your changes:**
+
+   ```sh
+   git commit -m "Initial commit"
+   ```
+
+4. **Create a new repository on GitHub**  
+   Go to https://github.com and click "New" to create a new repository (e.g., `campuspanel`).
+
+5. **Add the remote origin:**
+
+   ```sh
+   git remote add origin https://github.com/<your-username>/<your-repo-name>.git
+   ```
+
+6. **Push your code:**
+
+   ```sh
+   git push -u origin master
+   ```
+
+Replace `<your-username>` and `<your-repo-name>` with your GitHub username and the repository name you created.
+
+You can now see
