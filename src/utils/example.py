@@ -27,4 +27,4 @@ if __name__ == '__main__':
     app_collection.mount_app(text.getApp())
     
     # Run the application
-    socketio.run(app, port=15529, host="0.0.0.0")
+    socketio.run(app, port=15555, host="0.0.0.0")
