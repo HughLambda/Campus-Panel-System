@@ -1,7 +1,7 @@
 import sqlite3
 import hashlib
 import datetime
-from user import User
+from .user import User
 DB_NAME = "users.db"
 
 
@@ -19,7 +19,7 @@ def initDB():
 def deleteUser(user:User)->bool:
     deleteUser(user.username)
 def loginUser(user:User)->bool:
-    login_user(user.username,user.password)
+    return login_user(user.username,user.password)
 def registerUser(user:User)->bool:
     return register_user(user.username, user.password, user.email, user.data)
 def getUser(username:str)->User:
@@ -37,7 +37,7 @@ def setUser(user:User)->bool:
     try:
         cursor.execute('''
             UPDATE users SET password=?, email=?, data=? WHERE username=?
-        ''', (user.password, user.email, user.data, user.username))
+        ''', (hash_password(user.password), user.email, user.data, user.username))
         conn.commit()
         return cursor.rowcount > 0
     except sqlite3.IntegrityError:

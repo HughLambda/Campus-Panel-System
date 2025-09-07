@@ -25,6 +25,12 @@ if __name__ == '__main__':
     # Create text processing application
     import exampleTextProcessor as text
     app_collection.mount_app(text.getApp())
+    #login
+    import exampleLogin as login
+    app_collection.mount_app(login.getApp())
+    #register
+    import exampleRegister as register
+    app_collection.mount_app(register.getApp())
     
     # Run the application
     socketio.run(app, port=15555, host="0.0.0.0")

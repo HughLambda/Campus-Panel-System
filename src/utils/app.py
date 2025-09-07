@@ -9,11 +9,11 @@ import uuid
 
 class SimpApp:
     """Web application class combined the page and task solving"""
-    def __init__(self, tag: str, task: Task, page: Page):
+    def __init__(self, tag: str, task: Task, page: Page, visible: bool = True):
         self.tag = tag
         self.task = task
         self.page = page
-        
+        self.visible = visible
     def handle_request(self, **context) -> str:
         """Handle the http request and then return the rendered view"""
         return self.page.render(** context)
@@ -56,7 +56,7 @@ class WebAppCollection:
         @self.app.route('/')
         def index():
 
-            apps_list = [{"tag": tag, "title": app.page.title} for tag, app in self.apps.items()]
+            apps_list = [{"tag": tag, "title": app.page.title} for tag, app in self.apps.items() if app.visible]
             return render_template_string("""
             <!DOCTYPE html>
             <html>
@@ -79,7 +79,7 @@ class WebAppCollection:
                         <a href="/{{ app.tag }}" class="app-link">{{ app.title }}</a>
                     </li>
                     {% else %}
-                    <li>None of applications,mount the app first,please</li>
+                    <li>one of applications,mount the app first,please</li>
                     {% endfor %}
                 </ul>
             </body>

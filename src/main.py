@@ -13,5 +13,5 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 app_collection = WebAppCollection(app, socketio)
 
 if __name__ == "__main__":
-    socketio.run(app,port=15529,host="0.0.0.0")
+    socketio.run(app,port=15555,host="0.0.0.0")
     print("starting CPS")

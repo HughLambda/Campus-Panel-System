@@ -1,23 +1,28 @@
 import json
 
 class User:
-    def __init__(self, username, password, email, data):
+    def __init__(self, username, password, role, phone, data):
         self.username = username
         self.password = password
-        self.email = email
+        self.role = role
+        self.phone = phone
         self.data = data
-    def to_json(self):
-        return json.dumps({
-            "username": self.username,
-            "password": self.password,
-            "email": self.email,
-            "data": self.data
-        })
-def from_json(json_str):
+
+def fromJson(json_str):
     data = json.loads(json_str)
     return User(
         username=data.get("username"),
         password=data.get("password"),
-        email=data.get("email"),
+        role=data.get("role"),
+        phone=data.get("phone"),
         data=data.get("data"),
     )
+
+def toJson(user:User)->str:
+    return json.dumps({
+        "username": user.username,
+        "password": user.password,
+        "role": user.role,
+        "phone": user.phone,
+        "data": user.data
+    })
