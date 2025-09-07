@@ -1,8 +1,9 @@
 
 import json
-
+#record is a list of score uuid
+#manage is a list of user uuid
 class Student:
-    def __init__(self,uuid:str,name:str,classroom:str,dorm:str,group:str,score:float,data:str) -> None:
+    def __init__(self,uuid:str,name:str,classroom:str,dorm:str,group:str,record:list[str],manage:list[str],score:float,data:str) -> None:
         self.uuid = uuid
         self.name = name
         self.data = data
@@ -12,7 +13,11 @@ class Student:
         self.group = group
         #float
         self.score = score
-    def to_json(self):
+        #uuid list
+        self.record = record
+        #homework uuid list
+        self.manage = manage
+    def toJson(self):   
         return json.dumps({
             "uuid": self.uuid,
             "name": self.name,
@@ -20,19 +25,20 @@ class Student:
             "dorm": self.dorm,
             "group": self.group,
             "score": self.score,
+            "record": json.dumps(self.record),
+            "manage": json.dumps(self.manage),
             "data": self.data
         })
-
-def from_json(json_str):
-    data = json.loads(json_str)
-    return Student(
-        uuid=data.get("uuid"),
-        name=data.get("name"),
-        classroom=data.get("classroom"),
-        dorm=data.get("dorm"),
-        group=data.get("group"),
-        score=data.get("score"),
-        data=data.get("data"),
-    )
-    def getScore(self):
-        return self.score
+    def fromJson(json_str):
+        data = json.loads(json_str)
+        return Student(
+          data.uuid,
+          data.name,
+          data.classroom,
+          data.dorm,
+          data.group,
+          json.loads(data.record),
+          json.loads(data.manage),
+          data.score,
+          data.data
+       )
